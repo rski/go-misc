@@ -111,6 +111,12 @@ func doPackage(prog *loader.Program, pkg *loader.PackageInfo) []types.Object {
 			continue
 		}
 		obj := global.Lookup(name)
+		filename := filepath.Base(prog.Fset.Position(obj.Pos()).Filename)
+		// Ignore IDs defined in file "C". This is a pseudo-file
+		// generated when a package contains a cgo file.
+		if filename == "C" {
+			continue
+		}
 		if !used[obj] && (pkg.Pkg.Name() == "main" || !ast.IsExported(name)) {
 			unused = append(unused, obj)
 		}
