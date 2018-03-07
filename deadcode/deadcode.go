@@ -13,13 +13,10 @@ import (
 	"golang.org/x/tools/go/loader"
 )
 
-var exitCode int
-
-var (
-	withTestFiles bool
-)
+const deadCodeFoundExit = 2
 
 func main() {
+	var withTestFiles bool
 	flag.BoolVar(&withTestFiles, "test", false, "include test files")
 	flag.Parse()
 	ctx := &context{
@@ -34,7 +31,9 @@ func main() {
 	for _, obj := range report {
 		ctx.errorf(obj.Pos(), "%s is unused", obj.Name())
 	}
-	os.Exit(exitCode)
+	if len(report) != 0 {
+		os.Exit(deadCodeFoundExit)
+	}
 }
 
 func fatalf(format string, args ...interface{}) {
@@ -71,7 +70,6 @@ func (ctx *context) errorf(pos token.Pos, format string, args ...interface{}) {
 		p.Filename = f
 	}
 	fmt.Fprintf(os.Stderr, p.String()+": "+format+"\n", args...)
-	exitCode = 2
 }
 
 func (ctx *context) process() []types.Object {
