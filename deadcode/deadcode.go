@@ -22,15 +22,15 @@ var (
 func main() {
 	flag.BoolVar(&withTestFiles, "test", false, "include test files")
 	flag.Parse()
-	ctx := &Context{
+	ctx := &context{
 		withTests: withTestFiles,
 	}
 	if flag.NArg() == 0 {
-		ctx.Load(".")
+		ctx.load(".")
 	} else {
-		ctx.Load(flag.Args()...)
+		ctx.load(flag.Args()...)
 	}
-	report := ctx.Process()
+	report := ctx.process()
 	for _, obj := range report {
 		ctx.errorf(obj.Pos(), "%s is unused", obj.Name())
 	}
@@ -42,14 +42,14 @@ func fatalf(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-type Context struct {
+type context struct {
 	cwd       string
 	withTests bool
 
 	loader.Config
 }
 
-func (ctx *Context) Load(args ...string) {
+func (ctx *context) load(args ...string) {
 	for _, arg := range args {
 		if ctx.withTests {
 			ctx.Config.ImportWithTests(arg)
@@ -61,7 +61,7 @@ func (ctx *Context) Load(args ...string) {
 
 // error formats the error to standard error, adding program
 // identification and a newline
-func (ctx *Context) errorf(pos token.Pos, format string, args ...interface{}) {
+func (ctx *context) errorf(pos token.Pos, format string, args ...interface{}) {
 	if ctx.cwd == "" {
 		ctx.cwd, _ = os.Getwd()
 	}
@@ -74,7 +74,7 @@ func (ctx *Context) errorf(pos token.Pos, format string, args ...interface{}) {
 	exitCode = 2
 }
 
-func (ctx *Context) Process() []types.Object {
+func (ctx *context) process() []types.Object {
 	prog, err := ctx.Config.Load()
 	if err != nil {
 		fatalf("cannot load packages: %s", err)
