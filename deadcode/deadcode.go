@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"golang.org/x/tools/go/loader"
 )
@@ -115,6 +116,14 @@ func doPackage(prog *loader.Program, pkg *loader.PackageInfo) []types.Object {
 		if filename == "C" {
 			continue
 		}
+
+		// ignore Tests
+		_, isSig := obj.Type().(*types.Signature)
+		if isSig && strings.HasPrefix(obj.Name(), "Test") &&
+			strings.HasSuffix(filename, "_test.go") {
+			continue
+		}
+
 		if !used[obj] && (pkg.Pkg.Name() == "main" || !ast.IsExported(name)) {
 			unused = append(unused, obj)
 		}
