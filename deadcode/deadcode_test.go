@@ -5,36 +5,34 @@ import (
 	"testing"
 )
 
-func TestP1(t *testing.T) {
-	ctx := new(context)
-	ctx.load("./testdata/p1")
-	objs := ctx.process()
-	compare(t, objs, []string{
-		"unused",
-		"g",
-		"H",
-		// "h", // recursive functions are not supported
-	})
-}
+func TestDeadcode(t *testing.T) {
+	// ignoring "h" because recursive funcs are nut supported
+	tests := []struct {
+		testFile  string
+		names     []string
+		withTests bool
+	}{{
+		testFile: "p1",
+		names:    []string{"unused", "g", "H"},
+	}, {
+		testFile: "p2",
+		names:    []string{"main", "unused", "g"},
+	}, {
+		testFile:  "p3",
+		names:     []string{"y"},
+		withTests: true,
+	},
+	}
 
-func TestP2(t *testing.T) {
-	ctx := new(context)
-	ctx.load("./testdata/p2")
-	objs := ctx.process()
-	compare(t, objs, []string{
-		"main",
-		"unused",
-		"g",
-		// "h", // recursive functions are not supported
-	})
-}
+	for _, tc := range tests {
+		t.Run(tc.testFile, func(t *testing.T) {
+			ctx := &context{withTests: tc.withTests}
+			ctx.load("./testdata/" + tc.testFile)
+			objs := ctx.process()
+			compare(t, objs, tc.names)
+		})
+	}
 
-func TestWithTestFiles(t *testing.T) {
-	ctx := &context{withTests: true}
-	ctx.load("./testdata/p3")
-	objs := ctx.process()
-	// Only "y" is unused, x is used in tests.
-	compare(t, objs, []string{"y"})
 }
 
 func compare(t *testing.T, objs []types.Object, names []string) {
